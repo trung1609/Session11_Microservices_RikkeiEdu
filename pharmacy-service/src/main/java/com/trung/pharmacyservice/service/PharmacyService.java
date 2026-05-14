@@ -12,6 +12,8 @@ import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -23,6 +25,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -33,6 +36,7 @@ public class PharmacyService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final MedicineRepository medicineRepository;
     private final RedisTemplate<String, Medicine> redisTemplate;
+    private final RedissonClient redissonClient;
 
     @Value("${spring.kafka.template.default-topic}")
     private String TOPIC;
@@ -114,5 +118,36 @@ public class PharmacyService {
             existingMedicine.setMedicineName(medicine.getMedicineName());
         }
         return medicineRepository.save(existingMedicine);
+    }
+
+    public String sellMedicine(Long medicineId){
+        RLock lock = redissonClient.getLock("lock:medicine:" + medicineId);
+        try {
+            if (lock.tryLock(3,5, TimeUnit.SECONDS)){
+                try {
+                    Medicine medicine = medicineRepository.findById(medicineId)
+                            .orElseThrow(() -> new RuntimeException("Không tìm thấy thuốc"));
+
+                    if (medicine.getQuantity() > 0) {
+                        Thread.sleep(1000);
+
+                        medicine.setQuantity(medicine.getQuantity() - 1);
+                        medicineRepository.save(medicine);
+                        return "Thanh toán thành công thuốc: " + medicine.getMedicineName();
+                    } else {
+                        return "Sản phẩm đã hết hàng!";
+                    }
+                } finally {
+                    if (lock.isHeldByCurrentThread()) {
+                        lock.unlock();
+                    }
+                }
+            }else {
+                return "Hệ thống đang bận, vui lòng thử lại sau.";
+            }
+        }catch (InterruptedException e){
+            Thread.currentThread().interrupt();
+            return "Giao dịch bị gián đoạn, vui lòng thử lại.";
+        }
     }
 }

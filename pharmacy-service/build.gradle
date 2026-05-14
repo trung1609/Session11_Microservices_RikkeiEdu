@@ -41,6 +41,8 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testAnnotationProcessor 'org.projectlombok:lombok'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    // Source: https://mvnrepository.com/artifact/org.redisson/redisson
+    implementation("org.redisson:redisson:4.4.0")
 }
 
 dependencyManagement {

@@ -68,4 +68,22 @@ public class PharmacyController {
         redisPublisher.publishAlert(alert.getType(), alert.getMessage());
         return "Đã gửi thông báo đến kênh: pharmacy-alerts";
     }
+
+    @PutMapping("/sell/{id}")
+    public void sellMedicine(@PathVariable Long id) {
+        // Luồng của nhân viên 1
+        Thread thread1 = new Thread(() -> {
+            String rsBuy = pharmacyService.sellMedicine(id);
+            System.out.println("Người dùng 1 : " + rsBuy);
+        });
+
+        // Luồng của nhân viên 2
+        Thread thread2 = new Thread(() -> {
+            String rsBuy = pharmacyService.sellMedicine(id);
+            System.out.println("Người dùng 2 : " + rsBuy);
+        });
+        thread2.start();
+        thread1.start();
+    }
+
 }
