@@ -4,6 +4,7 @@
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="web" url="file://$PROJECT_DIR$/config-server" />
     <file type="web" url="file://$PROJECT_DIR$/pharmacy-service" />
+    <file type="web" url="file://$PROJECT_DIR$/subcriber" />
     <file type="web" url="file://$PROJECT_DIR$/warehouse-service" />
   </component>
   <component name="ProjectRootManager" version="2">

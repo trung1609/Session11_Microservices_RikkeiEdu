@@ -2,8 +2,11 @@ package com.trung.pharmacyservice.controller;
 
 import com.trung.pharmacyservice.dto.SellRequest;
 import com.trung.pharmacyservice.entity.Medicine;
+import com.trung.pharmacyservice.entity.PharmacyAlert;
 import com.trung.pharmacyservice.event.OrderEvent;
+import com.trung.pharmacyservice.repository.MedicineRepository;
 import com.trung.pharmacyservice.service.PharmacyService;
+import com.trung.pharmacyservice.service.RedisPublisher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class PharmacyController {
     private final PharmacyService pharmacyService;
+    private final RedisPublisher redisPublisher;
 
     @PostMapping("/process-order")
     public String processOrder(@RequestParam Long productId) {
@@ -57,5 +61,11 @@ public class PharmacyController {
     public ResponseEntity<Medicine> updateMedicine(@PathVariable Long id, @RequestBody Medicine medicine) {
         Medicine updatedMedicine = pharmacyService.updateMedicine(id, medicine);
         return ResponseEntity.ok(updatedMedicine);
+    }
+
+    @PostMapping("/import")
+    public String importMedicines(@RequestBody PharmacyAlert alert) {
+        redisPublisher.publishAlert(alert.getType(), alert.getMessage());
+        return "Đã gửi thông báo đến kênh: pharmacy-alerts";
     }
 }
