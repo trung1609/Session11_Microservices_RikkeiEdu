@@ -3,3 +3,10 @@ spring:
     name: pharmacy-service
   config:
     import: "optional:configserver:http://localhost:8888/"
+
+  session:
+    store-type: redis
+    data:
+      redis:
+        namespace: "pharmacy-service:session"
+        save-mode: always
