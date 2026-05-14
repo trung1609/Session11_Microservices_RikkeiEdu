@@ -13,6 +13,7 @@ import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.cloud.context.scope.refresh.RefreshScopeRefreshedEvent;
@@ -92,5 +93,26 @@ public class PharmacyService {
     @Cacheable(value = "medicines", key = "#id")
     public Medicine getMedicineById(Long id){
         return medicineRepository.findById(id).orElse(null);
+    }
+
+    @CacheEvict(value = "medicines", key = "#id")
+    public Medicine updateMedicine(Long id, Medicine medicine){
+        Medicine existingMedicine = medicineRepository.findById(id).orElse(null);
+        if (medicine.getMedicineId() != null){
+            existingMedicine.setMedicineId(medicine.getMedicineId());
+        }
+        if (medicine.getQuantity() != null){
+            existingMedicine.setQuantity(medicine.getQuantity());
+        }
+        if (medicine.getExpiryDate() != null){
+            existingMedicine.setExpiryDate(medicine.getExpiryDate());
+        }
+        if (medicine.getStatus() != null){
+            existingMedicine.setStatus(medicine.getStatus());
+        }
+        if (medicine.getMedicineName() != null){
+            existingMedicine.setMedicineName(medicine.getMedicineName());
+        }
+        return medicineRepository.save(existingMedicine);
     }
 }

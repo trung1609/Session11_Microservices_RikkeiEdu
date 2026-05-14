@@ -52,4 +52,10 @@ public class PharmacyController {
         Medicine medicine = pharmacyService.getMedicineById(id);
         return ResponseEntity.ok(medicine);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Medicine> updateMedicine(@PathVariable Long id, @RequestBody Medicine medicine) {
+        Medicine updatedMedicine = pharmacyService.updateMedicine(id, medicine);
+        return ResponseEntity.ok(updatedMedicine);
+    }
 }
